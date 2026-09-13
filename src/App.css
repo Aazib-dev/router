@@ -15,11 +15,11 @@ body {
 }
 
 html {
-  background-color: #FAFBFC;
+  background-color: #F8FAFC;
 }
 
 html.dark {
-  background-color: #1d232a;
+  background-color: #09090b;
 }
 
 /* 全局样式 */
@@ -30,13 +30,12 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #FAFBFC;
+  background-color: #F8FAFC;
 }
 
 /* Dark mode override for body strictly */
 .dark body {
-  background-color: #1d232a;
-  /* matches base-300 commonly used */
+  background-color: #09090b;
 }
 
 #root {
@@ -106,8 +105,8 @@ a {
 .dark select,
 .dark select option,
 .dark select optgroup {
-  background-color: #1e293b;
-  color: #e2e8f0;
+  background-color: #18181b;
+  color: #f4f4f5;
 }
 
 .dark select option:checked {

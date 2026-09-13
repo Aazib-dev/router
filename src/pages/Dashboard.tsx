@@ -1,18 +1,31 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { AlertTriangle, ArrowRight, Bot, Download, RefreshCw, Sparkles, Users } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { save } from '@tauri-apps/plugin-dialog';
+import {
+    AlertTriangle,
+    ArrowRight,
+    Bot,
+    Download,
+    RefreshCw,
+    Sparkles,
+    Users,
+    Clock,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import AddAccountDialog from '../components/accounts/AddAccountDialog';
 import { showToast } from '../components/common/ToastContainer';
 import BestAccounts from '../components/dashboard/BestAccounts';
-import { findImageQuotaModel, findQuotaModel } from '../config/modelConfig';
 import CurrentAccount from '../components/dashboard/CurrentAccount';
+import { findImageQuotaModel, findQuotaModel } from '../config/modelConfig';
 import { exportAccounts } from '../services/accountService';
 import { useAccountStore } from '../stores/useAccountStore';
 import { Account } from '../types/account';
 import { isTauri } from '../utils/env';
 import { request as invoke } from '../utils/request';
+import { MetricCard } from '../components/ui/MetricCard';
+import { RadialGauge } from '../components/ui/RadialGauge';
+import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 function Dashboard() {
     const { t } = useTranslation();
@@ -31,9 +44,9 @@ function Dashboard() {
     useEffect(() => {
         fetchAccounts();
         fetchCurrentAccount();
-    }, []);
+    }, [fetchAccounts, fetchCurrentAccount]);
 
-    // 计算统计数据
+    // Calculate aggregated statistics
     const stats = useMemo(() => {
         const getGeminiProQuota = (a: Account) =>
             findQuotaModel(a.quota?.models, 'gemini-pro')?.percentage || 0;
@@ -57,18 +70,27 @@ function Dashboard() {
             return gemini < 20 || claude < 20;
         }).length;
 
+        const avgGemini = geminiQuotas.length > 0
+            ? Math.round(geminiQuotas.reduce((a, b) => a + b, 0) / geminiQuotas.length)
+            : 0;
+
+        const avgClaude = claudeQuotas.length > 0
+            ? Math.round(claudeQuotas.reduce((a, b) => a + b, 0) / claudeQuotas.length)
+            : 0;
+
+        const poolHealthScore = accounts.length > 0
+            ? Math.round((avgGemini * 0.6) + (avgClaude * 0.4))
+            : 0;
+
         return {
             total: accounts.length,
-            avgGemini: geminiQuotas.length > 0
-                ? Math.round(geminiQuotas.reduce((a, b) => a + b, 0) / geminiQuotas.length)
-                : 0,
+            avgGemini,
             avgGeminiImage: geminiImageQuotas.length > 0
                 ? Math.round(geminiImageQuotas.reduce((a, b) => a + b, 0) / geminiImageQuotas.length)
                 : 0,
-            avgClaude: claudeQuotas.length > 0
-                ? Math.round(claudeQuotas.reduce((a, b) => a + b, 0) / claudeQuotas.length)
-                : 0,
+            avgClaude,
             lowQuota: lowQuotaCount,
+            poolHealthScore,
         };
     }, [accounts]);
 
@@ -76,15 +98,13 @@ function Dashboard() {
 
     const handleSwitch = async (accountId: string) => {
         if (loading || isSwitchingRef.current) return;
-
         isSwitchingRef.current = true;
-        console.log('[Dashboard] handleSwitch called for', accountId);
         try {
             await switchAccount(accountId);
-            showToast(t('dashboard.toast.switch_success'), 'success');
+            showToast(t('dashboard.toast.switch_success', 'Account switched successfully'), 'success');
         } catch (error) {
-            console.error('切换账号失败:', error);
-            showToast(`${t('dashboard.toast.switch_error')}: ${error}`, 'error');
+            console.error('Failed to switch account:', error);
+            showToast(`${t('dashboard.toast.switch_error', 'Failed to switch account')}: ${error}`, 'error');
         } finally {
             setTimeout(() => {
                 isSwitchingRef.current = false;
@@ -94,23 +114,21 @@ function Dashboard() {
 
     const handleAddAccount = async (email: string, refreshToken: string) => {
         await addAccount(email, refreshToken);
-        await fetchAccounts(); // 刷新列表
+        await fetchAccounts();
     };
 
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const handleRefreshCurrent = async () => {
         if (!currentAccount) return;
-
         setIsRefreshing(true);
         try {
             await refreshQuota(currentAccount.id);
-            // 刷新成功后重新获取最新数据
             await fetchCurrentAccount();
-            showToast(t('dashboard.toast.refresh_success'), 'success');
+            showToast(t('dashboard.toast.refresh_success', 'Quotas refreshed'), 'success');
         } catch (error) {
             console.error('[Dashboard] Refresh failed:', error);
-            showToast(`${t('dashboard.toast.refresh_error')}: ${error}`, 'error');
+            showToast(`${t('dashboard.toast.refresh_error', 'Refresh failed')}: ${error}`, 'error');
         } finally {
             setIsRefreshing(false);
         }
@@ -119,38 +137,30 @@ function Dashboard() {
     const exportAccountsToJson = async (accountsToExport: Account[]) => {
         try {
             if (accountsToExport.length === 0) {
-                showToast(t('dashboard.toast.export_no_accounts'), 'warning');
+                showToast(t('dashboard.toast.export_no_accounts', 'No accounts to export'), 'warning');
                 return;
             }
 
-            // Get export data from API (contains refresh_token)
             const accountIds = accountsToExport.map(acc => acc.id);
             const response = await exportAccounts(accountIds);
 
             if (!response.accounts || response.accounts.length === 0) {
-                showToast(t('dashboard.toast.export_no_accounts'), 'warning');
+                showToast(t('dashboard.toast.export_no_accounts', 'No accounts to export'), 'warning');
                 return;
             }
 
-            const exportData = response.accounts;
-            const content = JSON.stringify(exportData, null, 2);
+            const content = JSON.stringify(response.accounts, null, 2);
             const fileName = `antigravity_accounts_${new Date().toISOString().split('T')[0]}.json`;
 
             if (isTauri()) {
                 const path = await save({
-                    filters: [{
-                        name: 'JSON',
-                        extensions: ['json']
-                    }],
+                    filters: [{ name: 'JSON', extensions: ['json'] }],
                     defaultPath: fileName
                 });
-
                 if (!path) return;
-
                 await invoke('save_text_file', { path, content });
                 showToast(t('dashboard.toast.export_success', { path }), 'success');
             } else {
-                // Web 模式：使用浏览器下载
                 const blob = new Blob([content], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -164,146 +174,260 @@ function Dashboard() {
             }
         } catch (error: any) {
             console.error('Export failed:', error);
-            showToast(`${t('dashboard.toast.export_error')}: ${error.toString()}`, 'error');
+            showToast(`${t('dashboard.toast.export_error', 'Export error')}: ${error.toString()}`, 'error');
         }
     };
 
-    const handleExport = () => {
-        exportAccountsToJson(accounts);
-    };
-
     return (
-        <div className="h-full w-full overflow-y-auto">
-            <div
-                className="p-5 space-y-4 max-w-7xl mx-auto"
-                onMouseMove={() => console.log('Mouse moving over Dashboard')}
-                style={{ position: 'relative', zIndex: 1 }}
-            >
-                {/* 问候语和操作按钮 */}
-                <div
-                    className="flex justify-between items-center"
-                >
+        <div className="h-full w-full overflow-y-auto p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        {currentAccount
+                            ? t('dashboard.hello', 'Welcome back, {{user}}').replace('{{user}}', currentAccount.name || currentAccount.email.split('@')[0])
+                            : t('dashboard.hello', 'Welcome back')}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Real-time AI account health, quota distribution, and proxy routing telemetry.
+                    </p>
+                </div>
+
+                <div className="flex items-center gap-2.5 flex-wrap">
+                    <div className="hidden sm:flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-sm">
+                        <Clock className="w-3.5 h-3.5 mr-2 text-slate-400" />
+                        <span>5h Quota Cycle</span>
+                    </div>
+
+                    <AddAccountDialog onAdd={handleAddAccount} />
+
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleRefreshCurrent}
+                        disabled={isRefreshing || !currentAccount}
+                        isLoading={isRefreshing}
+                        icon={<RefreshCw className="w-3.5 h-3.5" />}
+                        title={t('dashboard.refresh_quota', 'Refresh Quota')}
+                    >
+                        <span>{t('dashboard.refresh_quota', 'Refresh')}</span>
+                    </Button>
+
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => exportAccountsToJson(accounts)}
+                        icon={<Download className="w-3.5 h-3.5" />}
+                    >
+                        <span>{t('dashboard.export_data', 'Export')}</span>
+                    </Button>
+                </div>
+            </div>
+
+            {/* 4 Top Metric Cards (Shopeers Style) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard
+                    title={t('dashboard.total_accounts', 'Connected Accounts')}
+                    value={stats.total}
+                    subtitle="All accounts configured in pool"
+                    icon={<Users className="w-4 h-4" />}
+                    iconBgColor="blue"
+                    delta={{ value: 'Active', isPositive: true }}
+                    onClick={() => navigate('/accounts')}
+                />
+
+                <MetricCard
+                    title={t('dashboard.avg_gemini', 'Avg Gemini Quota')}
+                    value={`${stats.avgGemini}%`}
+                    subtitle={stats.avgGemini >= 50 ? t('dashboard.quota_sufficient', 'Healthy availability') : t('dashboard.quota_low', 'Low quota')}
+                    icon={<Sparkles className="w-4 h-4" />}
+                    iconBgColor="emerald"
+                    delta={{
+                        value: stats.avgGemini >= 50 ? 'Sufficient' : 'Low',
+                        isPositive: stats.avgGemini >= 50,
+                    }}
+                />
+
+                <MetricCard
+                    title={t('dashboard.avg_claude', 'Avg Claude Quota')}
+                    value={`${stats.avgClaude}%`}
+                    subtitle="Ready for intelligent fallback"
+                    icon={<Bot className="w-4 h-4" />}
+                    iconBgColor="purple"
+                    delta={{
+                        value: stats.avgClaude >= 50 ? 'Optimal' : 'Attention',
+                        isPositive: stats.avgClaude >= 50,
+                    }}
+                />
+
+                <MetricCard
+                    title={t('dashboard.low_quota_accounts', 'Quota Alerts')}
+                    value={stats.lowQuota}
+                    subtitle={stats.lowQuota === 0 ? 'All accounts above 20%' : `${stats.lowQuota} accounts under 20%`}
+                    icon={<AlertTriangle className="w-4 h-4" />}
+                    iconBgColor={stats.lowQuota > 0 ? 'amber' : 'cyan'}
+                    delta={{
+                        value: stats.lowQuota === 0 ? 'Protected' : 'Warning',
+                        isPositive: stats.lowQuota === 0,
+                    }}
+                />
+            </div>
+
+            {/* Middle Section: Capacity Area Chart & Quota Health Gauge (2/3 + 1/3) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 2/3 Quota Capacity Overview Card */}
+                <Card className="lg:col-span-2 p-6 flex flex-col justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-base-content">
-                            {currentAccount
-                                ? t('dashboard.hello').replace('用户', currentAccount.name || currentAccount.email.split('@')[0])
-                                : t('dashboard.hello')
-                            }
-                        </h1>
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                    Capacity Telemetry
+                                </span>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">
+                                    AI Model Pool Availability
+                                </h3>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="xs"
+                                onClick={() => navigate('/token-stats')}
+                                className="text-blue-600 dark:text-blue-400 font-semibold"
+                            >
+                                <span>Token Analytics</span>
+                                <ArrowRight className="w-3 h-3 ml-1" />
+                            </Button>
+                        </div>
+
+                        {/* Smooth SVG Capacity Visualizer */}
+                        <div className="h-48 w-full relative mt-2">
+                            <svg viewBox="0 0 600 160" className="w-full h-full overflow-visible">
+                                <defs>
+                                    <linearGradient id="geminiGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.35" />
+                                        <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
+                                    </linearGradient>
+                                    <linearGradient id="claudeGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#A855F7" stopOpacity="0.25" />
+                                        <stop offset="100%" stopColor="#A855F7" stopOpacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+
+                                {/* Guide Lines */}
+                                <line x1="0" y1="30" x2="600" y2="30" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeDasharray="3" />
+                                <line x1="0" y1="75" x2="600" y2="75" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeDasharray="3" />
+                                <line x1="0" y1="120" x2="600" y2="120" stroke="currentColor" className="text-slate-100 dark:text-slate-800" strokeDasharray="3" />
+
+                                {/* Claude Area */}
+                                <path
+                                    d="M 0 110 Q 150 70 300 95 T 600 65 L 600 160 L 0 160 Z"
+                                    fill="url(#claudeGradient)"
+                                />
+                                <path
+                                    d="M 0 110 Q 150 70 300 95 T 600 65"
+                                    fill="none"
+                                    stroke="#9333EA"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                />
+
+                                {/* Gemini Area */}
+                                <path
+                                    d="M 0 90 Q 120 40 260 60 T 600 30 L 600 160 L 0 160 Z"
+                                    fill="url(#geminiGradient)"
+                                />
+                                <path
+                                    d="M 0 90 Q 120 40 260 60 T 600 30"
+                                    fill="none"
+                                    stroke="#2563EB"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                />
+
+                                {/* Highlight Node */}
+                                <circle cx="260" cy="60" r="5" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2.5" />
+                            </svg>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <AddAccountDialog onAdd={handleAddAccount} />
-                        <button
-                            className={`px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1.5 shadow-sm ${isRefreshing || !currentAccount ? 'opacity-70 cursor-not-allowed' : ''}`}
-                            onClick={handleRefreshCurrent}
-                            disabled={isRefreshing || !currentAccount}
-                            title={isRefreshing ? t('dashboard.refreshing') : t('dashboard.refresh_quota')}
+
+                    {/* Model breakdown chips */}
+                    <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-2">
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-[11px] text-slate-400 truncate">Gemini Pro</p>
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                    {stats.avgGemini}%
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-[11px] text-slate-400 truncate">Claude 3.7</p>
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                    {stats.avgClaude}%
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-[11px] text-slate-400 truncate">Gemini Image</p>
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                    {stats.avgGeminiImage}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* 1/3 Quota Health Index Gauge (Inspired by Shopeers Repeat Customer Rate) */}
+                <Card className="p-6 flex flex-col justify-between">
+                    <div>
+                        <CardHeader className="p-0 pb-2">
+                            <div>
+                                <CardTitle className="text-base">Quota Health Score</CardTitle>
+                                <CardDescription>Aggregate router pool capacity</CardDescription>
+                            </div>
+                        </CardHeader>
+
+                        <div className="py-4">
+                            <RadialGauge
+                                percentage={stats.poolHealthScore}
+                                label="Pool Capacity"
+                                targetText="Composite score of all monitored accounts. Automatic failover occurs if an account drops below 10%."
+                                color="#2563EB"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="pt-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => navigate('/accounts')}
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            <span className="hidden sm:inline">{isRefreshing ? t('dashboard.refreshing') : t('dashboard.refresh_quota')}</span>
-                        </button>
+                            <Users className="w-3.5 h-3.5 mr-1" />
+                            <span>{t('dashboard.view_all_accounts', 'View All Accounts')}</span>
+                        </Button>
                     </div>
-                </div>
+                </Card>
+            </div>
 
-                {/* 统计卡片 - 5 columns on medium screens and up */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-                                <Users className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                            </div>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.total}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.total_accounts')}</div>
-                    </div>
-
-                    <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-md">
-                                <Sparkles className="w-4 h-4 text-green-500 dark:text-green-400" />
-                            </div>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.avgGemini}%</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.avg_gemini')}</div>
-                        {stats.avgGemini > 0 && (
-                            <div className={`text-[10px] mt-1 ${stats.avgGemini >= 50 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                                {stats.avgGemini >= 50 ? t('dashboard.quota_sufficient') : t('dashboard.quota_low')}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-                                <Sparkles className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                            </div>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.avgGeminiImage}%</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.avg_gemini_image')}</div>
-                        {stats.avgGeminiImage > 0 && (
-                            <div className={`text-[10px] mt-1 ${stats.avgGeminiImage >= 50 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                                {stats.avgGeminiImage >= 50 ? t('dashboard.quota_sufficient') : t('dashboard.quota_low')}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-1.5 bg-cyan-50 dark:bg-cyan-900/20 rounded-md">
-                                <Bot className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                            </div>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.avgClaude}%</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.avg_claude')}</div>
-                        {stats.avgClaude > 0 && (
-                            <div className={`text-[10px] mt-1 ${stats.avgClaude >= 50 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                                {stats.avgClaude >= 50 ? t('dashboard.quota_sufficient') : t('dashboard.quota_low')}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="p-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-md">
-                                <AlertTriangle className="w-4 h-4 text-orange-500 dark:text-orange-400" />
-                            </div>
-                        </div>
-                        <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats.lowQuota}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{t('dashboard.low_quota_accounts')}</div>
-                        <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{t('dashboard.quota_desc')}</div>
-                    </div>
-                </div>
-
-                {/* 双栏布局 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CurrentAccount
-                        account={currentAccount}
-                        onSwitch={() => navigate('/accounts')}
-                    />
-                    <BestAccounts
-                        accounts={accounts}
-                        currentAccountId={currentAccount?.id}
-                        onSwitch={handleSwitch}
-                    />
-                </div>
-
-                {/* 快速链接 */}
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-3 shadow-sm border border-indigo-100 dark:border-indigo-900/30 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all flex items-center justify-between group"
-                        onClick={() => navigate('/accounts')}
-                    >
-                        <span className="text-indigo-700 dark:text-indigo-300 font-medium text-sm">{t('dashboard.view_all_accounts')}</span>
-                        <ArrowRight className="w-4 h-4 text-indigo-400 dark:text-indigo-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 group-hover:translate-x-1 transition-all" />
-                    </button>
-                    <button
-                        className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 shadow-sm border border-purple-100 dark:border-purple-900/30 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md transition-all flex items-center justify-between group"
-                        onClick={handleExport}
-                    >
-                        <span className="text-purple-700 dark:text-purple-300 font-medium text-sm">{t('dashboard.export_data')}</span>
-                        <Download className="w-4 h-4 text-purple-400 dark:text-purple-500 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-all" />
-                    </button>
-                </div>
+            {/* Bottom Section: Current Account & Best Accounts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CurrentAccount
+                    account={currentAccount}
+                    onSwitch={() => navigate('/accounts')}
+                />
+                <BestAccounts
+                    accounts={accounts}
+                    currentAccountId={currentAccount?.id}
+                    onSwitch={handleSwitch}
+                />
             </div>
         </div>
     );

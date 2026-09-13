@@ -78,24 +78,23 @@ function CollapsibleCard({
     const { t } = useTranslation();
 
     return (
-        <div className="bg-white dark:bg-base-100 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700/50 overflow-hidden transition-all duration-200 hover:shadow-md">
+        <div className="bg-white dark:bg-[#121214] rounded-2xl shadow-sm border border-slate-200/80 dark:border-zinc-800 overflow-hidden transition-all duration-200 hover:shadow-md">
             <div
-                className="px-5 py-4 flex items-center justify-between cursor-pointer bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                className="px-5 py-3.5 flex items-center justify-between cursor-pointer bg-slate-50/50 dark:bg-zinc-900/40 hover:bg-slate-50 dark:hover:bg-zinc-800/60 transition-colors"
                 onClick={(e) => {
-                    // Prevent toggle when clicking the switch or right element
                     if ((e.target as HTMLElement).closest('.no-expand')) return;
                     setIsExpanded(!isExpanded);
                 }}
             >
                 <div className="flex items-center gap-3">
-                    <div className="text-gray-500 dark:text-gray-400">
+                    <div className="text-slate-400">
                         {icon}
                     </div>
-                    <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                    <span className="font-bold text-sm text-slate-900 dark:text-zinc-100">
                         {title}
                     </span>
                     {enabled !== undefined && (
-                        <div className={cn('text-xs px-2 py-0.5 rounded-full', enabled ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-600/50 dark:text-gray-300')}>
+                        <div className={cn('text-xs px-2 py-0.5 rounded-full font-semibold', enabled ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500')}>
                             {enabled ? t('common.enabled') : t('common.disabled')}
                         </div>
                     )}
@@ -106,17 +105,28 @@ function CollapsibleCard({
 
                     {enabled !== undefined && onToggle && (
                         <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-sm bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 checked:bg-blue-500 checked:border-blue-500"
-                                checked={enabled}
-                                onChange={(e) => onToggle(e.target.checked)}
-                            />
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={enabled}
+                                onClick={() => onToggle(!enabled)}
+                                className={cn(
+                                    'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out',
+                                    enabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'
+                                )}
+                            >
+                                <span
+                                    className={cn(
+                                        'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out mt-0.5',
+                                        enabled ? 'translate-x-4 ml-0.5' : 'translate-x-0.5'
+                                    )}
+                                />
+                            </button>
                         </div>
                     )}
 
                     <button
-                        className={cn('p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200', isExpanded ? 'rotate-180' : '')}
+                        className={cn('p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 transition-all duration-200', isExpanded ? 'rotate-180' : '')}
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="m6 9 6 6 6-6" />
@@ -1062,14 +1072,32 @@ print(response.choices[0].message.content)`;
 
     return (
         <div className="h-full w-full overflow-y-auto overflow-x-hidden">
-            <div className="p-5 space-y-4 max-w-7xl mx-auto">
+            <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+                {/* Page Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+                            {t('nav.proxy', 'API Proxy Gateway')}
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-0.5">
+                            Central gateway, OpenAI/Anthropic/Gemini protocol translation, and model routing.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-[#121214] border border-slate-200/80 dark:border-zinc-800 shadow-sm">
+                            <span className={cn('w-2 h-2 rounded-full', status.running ? 'bg-emerald-500' : 'bg-slate-400')} />
+                            <span>{status.running ? `Port ${status.port} • ${status.active_accounts} Accounts` : 'Gateway Stopped'}</span>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Loading State */}
                 {configLoading && (
                     <div className="flex items-center justify-center py-20">
                         <div className="flex flex-col items-center gap-4">
                             <RefreshCw size={32} className="animate-spin text-blue-500" />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                            <span className="text-sm text-gray-500 dark:text-zinc-400">
                                 {t('common.loading')}
                             </span>
                         </div>
@@ -1084,10 +1112,10 @@ print(response.choices[0].message.content)`;
                                 <Settings size={32} className="text-red-500" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-zinc-100">
                                     {t('proxy.error.load_failed')}
                                 </h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+                                <p className="text-sm text-gray-500 dark:text-zinc-400 max-w-md">
                                     {configError}
                                 </p>
                             </div>
@@ -1104,17 +1132,17 @@ print(response.choices[0].message.content)`;
 
                 {/* 配置区 */}
                 {!configLoading && !configError && appConfig && (
-                    <div className="bg-white dark:bg-base-100 rounded-xl shadow-sm border border-gray-100 dark:border-base-200">
-                        <div className="px-4 py-2.5 border-b border-gray-100 dark:border-base-200 flex items-center justify-between">
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl shadow-sm border border-slate-200/80 dark:border-zinc-800">
+                        <div className="px-5 py-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <h2 className="text-base font-semibold flex items-center gap-2 text-gray-900 dark:text-base-content">
-                                    <Settings size={18} />
+                                <h2 className="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-zinc-100">
+                                    <Settings size={18} className="text-blue-500" />
                                     {t('proxy.config.title')}
                                 </h2>
                                 {/* 状态指示器 */}
-                                <div className="flex items-center gap-2 pl-4 border-l border-gray-200 dark:border-base-300">
-                                    <div className={`w-2 h-2 rounded-full ${status.running ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-                                    <span className={`text-xs font-medium ${status.running ? 'text-green-600' : 'text-gray-500'}`}>
+                                <div className="flex items-center gap-2 pl-4 border-l border-slate-200 dark:border-zinc-800">
+                                    <div className={`w-2 h-2 rounded-full ${status.running ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                                    <span className={`text-xs font-semibold ${status.running ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'}`}>
                                         {status.running
                                             ? `${t('proxy.status.running')} (${status.active_accounts} ${t('common.accounts')})`
                                             : t('proxy.status.stopped')}

@@ -30,12 +30,12 @@ export default {
             {
                 dark: {
                     "primary": "#3b82f6",
-                    "secondary": "#94a3b8",
+                    "secondary": "#a1a1aa",
                     "accent": "#10b981",
-                    "neutral": "#1f2937",
-                    "base-100": "#0f172a", // Slate-900
-                    "base-200": "#1e293b", // Slate-800
-                    "base-300": "#334155", // Slate-700
+                    "neutral": "#18181b",
+                    "base-100": "#09090b", // True neutral pitch-dark zinc (zero blue)
+                    "base-200": "#121214", // True neutral dark card background
+                    "base-300": "#27272a", // Neutral zinc border
                     "info": "#0ea5e9",
                     "success": "#10b981",
                     "warning": "#f59e0b",

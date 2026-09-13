@@ -1,0 +1,19 @@
+[Unit]
+Description=Antigravity Router & AI Gateway Service
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Run in headless mode so it functions as a background daemon
+ExecStart=%h/.local/bin/antigravity-service-runner
+Restart=on-failure
+RestartSec=5s
+Environment=PORT=8045
+Environment=LOG_LEVEL=info
+Environment=ABV_BIND_LOCAL_ONLY=1
+# Optional: Uncomment and set a fixed API key if desired
+# Environment=API_KEY=your-custom-secret-key
+
+[Install]
+WantedBy=default.target

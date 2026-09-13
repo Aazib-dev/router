@@ -161,8 +161,8 @@ function AccountCard({ account, selected, onSelect, isCurrent: propIsCurrent, is
         <div className={cn(
             "flex flex-col p-3 rounded-xl border transition-all hover:shadow-md",
             isCurrent
-                ? "bg-blue-50/30 border-blue-200 dark:bg-blue-900/10 dark:border-blue-900/30"
-                : "bg-white dark:bg-base-100 border-gray-200 dark:border-base-300",
+                ? "bg-blue-50/40 border-blue-300 dark:bg-blue-950/20 dark:border-blue-800/40 shadow-sm"
+                : "bg-white dark:bg-[#121214] border-slate-200/80 dark:border-zinc-800",
             (isRefreshing || isDisabled) && "opacity-70"
         )}>
 
@@ -178,7 +178,7 @@ function AccountCard({ account, selected, onSelect, isCurrent: propIsCurrent, is
                 <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                     <h3 className={cn(
                         "font-semibold text-sm truncate w-full",
-                        isCurrent ? "text-blue-700 dark:text-blue-400" : "text-gray-900 dark:text-base-content"
+                        isCurrent ? "text-blue-600 dark:text-blue-400" : "text-slate-900 dark:text-zinc-100"
                     )} title={account.email}>
                         {account.email}
                     </h3>

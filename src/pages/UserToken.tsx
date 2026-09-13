@@ -230,30 +230,33 @@ const UserToken: React.FC = () => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="h-full flex flex-col p-5 gap-5 max-w-7xl mx-auto w-full"
+            className="h-full flex flex-col p-6 lg:p-8 gap-6 max-w-7xl mx-auto w-full"
         >
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                        <User className="text-purple-500 w-5 h-5" />
-                    </div>
-                    {t('user_token.title', { defaultValue: 'User Tokens' })}
-                </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 flex items-center gap-2.5">
+                        <User className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <span>{t('user_token.title', { defaultValue: 'User Tokens & Access' })}</span>
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+                        Generate scoped API keys with rate limits, curfew hours, and IP restrictions.
+                    </p>
+                </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                     <button
                         onClick={() => loadData()}
-                        className={`p-2 hover:bg-gray-100 dark:hover:bg-base-200 rounded-lg transition-colors ${loading ? 'text-blue-500' : 'text-gray-500'}`}
+                        className={`p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition shadow-sm ${loading ? 'text-blue-500' : ''}`}
                         title={t('common.refresh') || 'Refresh'}
                     >
-                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 shadow-sm shadow-blue-500/20"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2 shadow-sm shadow-blue-500/20"
                     >
-                        <Plus size={16} />
+                        <Plus size={15} />
                         <span>{t('user_token.create', { defaultValue: 'Create Token' })}</span>
                     </button>
                 </div>
@@ -261,74 +264,62 @@ const UserToken: React.FC = () => {
 
             {/* Stats Cards Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <motion.div
-                    whileHover={{ y: -2 }}
-                    className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-                            <Users className="w-4 h-4 text-blue-500" />
+                <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs mb-2">
+                        <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+                            <Users className="w-4 h-4" />
                         </div>
+                        <span>{t('user_token.total_users', { defaultValue: 'Total Users' })}</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats?.total_users || 0}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{t('user_token.total_users', { defaultValue: 'Total Users' })}</div>
-                </motion.div>
+                    <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">{stats?.total_users || 0}</div>
+                </div>
 
-                <motion.div
-                    whileHover={{ y: -2 }}
-                    className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded-md">
-                            <Activity className="w-4 h-4 text-green-500" />
+                <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs mb-2">
+                        <div className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                            <Activity className="w-4 h-4" />
                         </div>
+                        <span>{t('user_token.active_tokens', { defaultValue: 'Active Tokens' })}</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats?.active_tokens || 0}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{t('user_token.active_tokens', { defaultValue: 'Active Tokens' })}</div>
-                </motion.div>
+                    <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">{stats?.active_tokens || 0}</div>
+                </div>
 
-                <motion.div
-                    whileHover={{ y: -2 }}
-                    className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-                            <Clock className="w-4 h-4 text-purple-500" />
+                <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                    <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 text-xs mb-2">
+                        <div className="p-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                            <Clock className="w-4 h-4" />
                         </div>
+                        <span>{t('user_token.total_created', { defaultValue: 'Total Tokens' })}</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats?.total_tokens || 0}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{t('user_token.total_created', { defaultValue: 'Total Tokens' })}</div>
-                </motion.div>
+                    <div className="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">{stats?.total_tokens || 0}</div>
+                </div>
 
-                <motion.div
-                    whileHover={{ y: -2 }}
-                    className="bg-white dark:bg-base-100 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-base-200"
-                >
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-md">
-                            <Shield className="w-4 h-4 text-orange-500" />
+                <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs mb-2">
+                        <div className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+                            <Shield className="w-4 h-4" />
                         </div>
+                        <span>{t('user_token.today_requests', { defaultValue: 'Today Requests' })}</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-base-content mb-0.5">{stats?.today_requests || 0}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">{t('user_token.today_requests', { defaultValue: 'Today Requests' })}</div>
-                </motion.div>
+                    <div className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">{stats?.today_requests || 0}</div>
+                </div>
             </div>
 
             {/* Token List */}
-            <div className="flex-1 overflow-auto bg-white dark:bg-base-100 rounded-2xl shadow-sm border border-gray-100 dark:border-base-200">
-                <table className="table table-pin-rows">
-                    <thead>
-                        <tr className="bg-gray-50/50 dark:bg-base-200/50">
-                            <th className="bg-transparent text-gray-500 font-medium py-4">{t('user_token.username', { defaultValue: 'Username' })}</th>
-                            <th className="bg-transparent text-gray-500 font-medium py-4">{t('user_token.token', { defaultValue: 'Token' })}</th>
-                            <th className="bg-transparent text-gray-500 font-medium py-4">{t('user_token.expires', { defaultValue: 'Expires' })}</th>
-                            <th className="bg-transparent text-gray-500 font-medium py-4">{t('user_token.usage', { defaultValue: 'Usage' })}</th>
-                            <th className="bg-transparent text-gray-500 font-medium py-4">{t('user_token.ip_limit', { defaultValue: 'IP Limit' })}</th>
-                            <th className="bg-transparent text-gray-500 font-medium py-4">{t('user_token.created', { defaultValue: 'Created' })}</th>
-                            <th className="bg-transparent text-gray-500 font-medium py-4 text-right">{t('common.actions', { defaultValue: 'Actions' })}</th>
+            <div className="flex-1 overflow-auto bg-white dark:bg-[#121214] rounded-2xl shadow-sm border border-slate-200/80 dark:border-zinc-800">
+                <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50/80 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 text-[11px] font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-slate-200/80 dark:border-zinc-800">
+                        <tr>
+                            <th className="px-4 py-3">{t('user_token.username', { defaultValue: 'Username' })}</th>
+                            <th className="px-4 py-3">{t('user_token.token', { defaultValue: 'Token' })}</th>
+                            <th className="px-4 py-3">{t('user_token.expires', { defaultValue: 'Expires' })}</th>
+                            <th className="px-4 py-3">{t('user_token.usage', { defaultValue: 'Usage' })}</th>
+                            <th className="px-4 py-3">{t('user_token.ip_limit', { defaultValue: 'IP Limit' })}</th>
+                            <th className="px-4 py-3">{t('user_token.created', { defaultValue: 'Created' })}</th>
+                            <th className="px-4 py-3 text-right">{t('common.actions', { defaultValue: 'Actions' })}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 dark:divide-base-200">
+                    <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
                         <AnimatePresence mode="popLayout">
                             {tokens.map((token, index) => (
                                 <motion.tr
@@ -337,27 +328,27 @@ const UserToken: React.FC = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     transition={{ delay: index * 0.03 }}
-                                    className="hover:bg-gray-50/80 dark:hover:bg-base-200/50 transition-colors group"
+                                    className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors group"
                                 >
                                     <td className="py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 font-bold text-xs">
+                                            <div className="w-8 h-8 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-xs">
                                                 {token.username.substring(0, 2).toUpperCase()}
                                             </div>
                                             <div>
-                                                <div className="font-semibold text-gray-900 dark:text-white uppercase tracking-wider text-xs">{token.username}</div>
-                                                <div className="text-[10px] text-gray-500">{token.description || '-'}</div>
+                                                <div className="font-semibold text-slate-900 dark:text-zinc-100 uppercase tracking-wider text-xs">{token.username}</div>
+                                                <div className="text-[10px] text-slate-400">{token.description || '-'}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div className="flex items-center gap-2 group/token">
-                                            <code className="bg-gray-50 dark:bg-base-200 px-2 py-1 rounded border border-gray-100 dark:border-base-300 text-[11px] font-mono text-gray-600 dark:text-gray-400">
+                                            <code className="bg-slate-50 dark:bg-zinc-900 px-2 py-1 rounded border border-slate-200 dark:border-zinc-800 text-[11px] font-mono text-slate-700 dark:text-zinc-300">
                                                 {token.token.substring(0, 8)}••••••••
                                             </code>
                                             <button
                                                 onClick={() => handleCopyToken(token.token)}
-                                                className="p-1.5 hover:bg-gray-200 dark:hover:bg-base-300 rounded-md transition-all text-gray-400 hover:text-gray-600 dark:hover:text-white"
+                                                className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-800 rounded-md transition-all text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
                                             >
                                                 <Copy size={13} />
                                             </button>
@@ -368,7 +359,7 @@ const UserToken: React.FC = () => {
                                             {token.expires_at ? formatTime(token.expires_at) : t('user_token.never', { defaultValue: 'Never' })}
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-base-200 text-gray-500 rounded lowercase">
+                                            <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 rounded lowercase">
                                                 {getExpiresLabel(token.expires_type)}
                                             </span>
                                             {token.expires_at && token.expires_at < Date.now() / 1000 && (
@@ -382,41 +373,41 @@ const UserToken: React.FC = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="text-xs font-semibold text-gray-700 dark:text-gray-300">{token.total_requests} <span className="text-[10px] font-normal text-gray-400">reqs</span></div>
-                                        <div className="text-[10px] text-gray-400 mt-0.5">
+                                        <div className="text-xs font-semibold text-slate-700 dark:text-zinc-300">{token.total_requests} <span className="text-[10px] font-normal text-slate-400">reqs</span></div>
+                                        <div className="text-[10px] text-slate-400 mt-0.5">
                                             {(token.total_tokens_used / 1000).toFixed(1)}k tokens
                                         </div>
                                     </td>
                                     <td>
                                         {token.max_ips === 0
-                                            ? <span className="px-2 py-0.5 bg-gray-100 dark:bg-base-200 text-gray-500 text-[10px] rounded-full">{t('user_token.unlimited', { defaultValue: 'Unlimited' })}</span>
-                                            : <span className="px-2 py-0.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-[10px] font-medium rounded-full border border-orange-100 dark:border-orange-900/30">{token.max_ips} IPs</span>
+                                            ? <span className="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 text-[10px] rounded-full">{t('user_token.unlimited', { defaultValue: 'Unlimited' })}</span>
+                                            : <span className="px-2 py-0.5 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-[10px] font-medium rounded-full border border-orange-200 dark:border-orange-800/40">{token.max_ips} IPs</span>
                                         }
                                         {token.curfew_start && token.curfew_end && (
-                                            <div className="text-[10px] text-gray-400 mt-1.5 flex items-center gap-1 bg-gray-50 dark:bg-base-200 w-fit px-1.5 py-0.5 rounded">
+                                            <div className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1 bg-slate-50 dark:bg-zinc-900 w-fit px-1.5 py-0.5 rounded">
                                                 <Clock size={10} className="text-orange-500" />
                                                 <span>{token.curfew_start} - {token.curfew_end}</span>
                                             </div>
                                         )}
                                     </td>
-                                    <td className="text-[10px] text-gray-400 italic">
+                                    <td className="text-[10px] text-slate-400 italic">
                                         {formatTime(token.created_at)}
                                     </td>
-                                    <td className="text-right">
+                                    <td className="px-4 py-3 text-right">
                                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 onClick={() => handleEdit(token)}
-                                                className="p-1.5 hover:bg-gray-100 dark:hover:bg-base-200 rounded-lg text-gray-500 hover:text-blue-500 transition-colors"
+                                                className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-400 hover:text-blue-600 transition-colors"
                                                 title={t('common.edit', { defaultValue: 'Edit' })}
                                             >
                                                 <Settings size={14} />
                                             </button>
                                             <div className="dropdown dropdown-end">
-                                                <label tabIndex={0} className="p-1.5 hover:bg-gray-100 dark:hover:bg-base-200 rounded-lg text-gray-500 hover:text-green-500 transition-colors inline-block cursor-pointer">
+                                                <label tabIndex={0} className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-400 hover:text-emerald-600 transition-colors inline-block cursor-pointer">
                                                     <RefreshCw size={14} />
                                                 </label>
-                                                <ul tabIndex={0} className="dropdown-content z-[10] menu p-2 shadow-xl bg-white dark:bg-base-100 rounded-xl w-32 border border-gray-100 dark:border-base-200 mt-1">
-                                                    <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('user_token.renew')}</div>
+                                                <ul tabIndex={0} className="dropdown-content z-[10] menu p-2 shadow-xl bg-white dark:bg-[#18181b] rounded-xl w-32 border border-slate-200 dark:border-zinc-800 mt-1">
+                                                    <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('user_token.renew')}</div>
                                                     <li><a className="text-xs py-2" onClick={() => handleRenew(token.id, 'day')}>{t('user_token.expires_day', { defaultValue: '1 Day' })}</a></li>
                                                     <li><a className="text-xs py-2" onClick={() => handleRenew(token.id, 'week')}>{t('user_token.expires_week', { defaultValue: '1 Week' })}</a></li>
                                                     <li><a className="text-xs py-2" onClick={() => handleRenew(token.id, 'month')}>{t('user_token.expires_month', { defaultValue: '1 Month' })}</a></li>
@@ -424,7 +415,7 @@ const UserToken: React.FC = () => {
                                             </div>
                                             <button
                                                 onClick={() => handleDelete(token.id)}
-                                                className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
+                                                className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
@@ -436,16 +427,22 @@ const UserToken: React.FC = () => {
                         {tokens.length === 0 && !loading && (
                             <tr>
                                 <td colSpan={7} className="py-20">
-                                    <div className="flex flex-col items-center justify-center text-gray-400 gap-3">
-                                        <div className="p-4 bg-gray-50 dark:bg-base-200 rounded-full">
-                                            <Users size={40} className="opacity-20" />
+                                    <div className="flex flex-col items-center justify-center text-center p-8">
+                                        <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/50 dark:border-purple-800/40 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-3 shadow-sm">
+                                            <Users className="w-7 h-7" />
                                         </div>
-                                        <p className="text-sm">{t('user_token.no_data', { defaultValue: 'No tokens found' })}</p>
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-zinc-100 mb-1">
+                                            {t('user_token.no_data', { defaultValue: 'No User Tokens Generated' })}
+                                        </h4>
+                                        <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm mb-4">
+                                            Create scoped API tokens to distribute to clients, team members, or other applications with custom rate limits and IP restrictions.
+                                        </p>
                                         <button
                                             onClick={() => setShowCreateModal(true)}
-                                            className="text-xs text-blue-500 hover:underline"
+                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2 shadow-sm shadow-blue-500/20"
                                         >
-                                            {t('user_token.create', { defaultValue: 'Create your first token' })}
+                                            <Plus size={14} />
+                                            <span>{t('user_token.create', { defaultValue: 'Create Token' })}</span>
                                         </button>
                                     </div>
                                 </td>

@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { request as invoke } from '../utils/request';
 import { useTranslation } from 'react-i18next';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { Clock, Calendar, CalendarDays, Users, Zap, TrendingUp, RefreshCw, Cpu } from 'lucide-react';
+import { Clock, Calendar, CalendarDays, Users, Zap, TrendingUp, RefreshCw, Cpu, BarChart3 } from 'lucide-react';
+import { cn } from '../utils/cn';
 
 interface TokenStatsAggregated {
     period: string;
@@ -330,155 +331,179 @@ const TokenStats: React.FC = () => {
 
     return (
         <div className="h-full w-full overflow-y-auto">
-            <div className="p-5 space-y-4 max-w-7xl mx-auto">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                        <Zap className="w-6 h-6 text-blue-500" />
-                        {t('token_stats.title', 'Token 消费统计')}
-                    </h1>
-                    <div className="flex items-center gap-2">
-                        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+                {/* Page Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+                            <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <span>{t('token_stats.title', 'Token Analytics')}</span>
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            Aggregate token consumption, context cache hit rates, and model breakdown.
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1 border border-slate-200/60 dark:border-slate-700/60">
                             <button
                                 onClick={() => setTimeRange('hourly')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${timeRange === 'hourly'
-                                    ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800'
-                                    }`}
+                                className={cn(
+                                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                                    timeRange === 'hourly'
+                                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                )}
                             >
-                                <Clock className="w-4 h-4" />
-                                {t('token_stats.hourly', '小时')}
+                                <Clock className="w-3.5 h-3.5" />
+                                {t('token_stats.hourly', 'Hourly')}
                             </button>
                             <button
                                 onClick={() => setTimeRange('daily')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${timeRange === 'daily'
-                                    ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800'
-                                    }`}
+                                className={cn(
+                                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                                    timeRange === 'daily'
+                                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                )}
                             >
-                                <Calendar className="w-4 h-4" />
-                                {t('token_stats.daily', '日')}
+                                <Calendar className="w-3.5 h-3.5" />
+                                {t('token_stats.daily', 'Daily')}
                             </button>
                             <button
                                 onClick={() => setTimeRange('weekly')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${timeRange === 'weekly'
-                                    ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800'
-                                    }`}
+                                className={cn(
+                                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                                    timeRange === 'weekly'
+                                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                )}
                             >
-                                <CalendarDays className="w-4 h-4" />
-                                {t('token_stats.weekly', '周')}
+                                <CalendarDays className="w-3.5 h-3.5" />
+                                {t('token_stats.weekly', 'Weekly')}
                             </button>
                         </div>
+
                         <button
                             onClick={fetchData}
                             disabled={loading}
-                            className="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-50"
+                            className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
+                            title={t('common.refresh', 'Refresh')}
                         >
                             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 </div>
 
-                {summary && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-800/50 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-2">
-                                <div className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700">
-                                    <Zap className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                                </div>
-                                {t('token_stats.total_tokens', '总 Token')}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-zinc-400 text-xs mb-2">
+                            <div className="p-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                                <Zap className="w-4 h-4" />
                             </div>
-                            <div className="text-2xl font-bold text-gray-800 dark:text-white">
-                                {formatNumber(summary.total_tokens)}
-                            </div>
+                            <span>{t('token_stats.total_tokens', 'Total Tokens')}</span>
                         </div>
-                        <div className="bg-gradient-to-br from-blue-50/50 to-white dark:from-blue-900/10 dark:to-gray-800 rounded-xl p-4 shadow-sm border border-blue-100 dark:border-blue-900/30 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 text-blue-600/80 dark:text-blue-400/80 text-sm mb-2">
-                                <div className="p-1.5 rounded-lg bg-blue-100/50 dark:bg-blue-900/30">
-                                    <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                {t('token_stats.input_tokens', '输入 Token')}
-                            </div>
-                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                {formatNumber(summary.total_input_tokens)}
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-900/10 dark:to-gray-800 rounded-xl p-4 shadow-sm border border-purple-100 dark:border-purple-900/30 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 text-purple-600/80 dark:text-purple-400/80 text-sm mb-2">
-                                <div className="p-1.5 rounded-lg bg-purple-100/50 dark:bg-purple-900/30">
-                                    <TrendingUp className="w-4 h-4 rotate-180 text-purple-600 dark:text-purple-400" />
-                                </div>
-                                {t('token_stats.output_tokens', '输出 Token')}
-                            </div>
-                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                {formatNumber(summary.total_output_tokens)}
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-sky-50/50 to-white dark:from-sky-900/10 dark:to-gray-800 rounded-xl p-4 shadow-sm border border-sky-100 dark:border-sky-900/30 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 text-sky-600/80 dark:text-sky-400/80 text-sm mb-2">
-                                <div className="p-1.5 rounded-lg bg-sky-100/50 dark:bg-sky-900/30">
-                                    <Zap className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                                </div>
-                                {t('token_stats.cached_token', '缓存命中')}
-                            </div>
-                            <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">
-                                {formatNumber(summary.total_cached_tokens)}
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-green-50/50 to-white dark:from-green-900/10 dark:to-gray-800 rounded-xl p-4 shadow-sm border border-green-100 dark:border-green-900/30 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 text-green-600/80 dark:text-green-400/80 text-sm mb-2">
-                                <div className="p-1.5 rounded-lg bg-green-100/50 dark:bg-green-900/30">
-                                    <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                </div>
-                                {t('token_stats.accounts_used', '活跃账号')}
-                            </div>
-                            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                {summary.unique_accounts}
-                            </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-orange-50/50 to-white dark:from-orange-900/10 dark:to-gray-800 rounded-xl p-4 shadow-sm border border-orange-100 dark:border-orange-900/30 hover:shadow-md transition-shadow">
-                            <div className="flex items-center gap-2 text-orange-600/80 dark:text-orange-400/80 text-sm mb-2">
-                                <div className="p-1.5 rounded-lg bg-orange-100/50 dark:bg-orange-900/30">
-                                    <Cpu className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                </div>
-                                {t('token_stats.models_used', '使用模型')}
-                            </div>
-                            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                                {modelData.length}
-                            </div>
+                        <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100">
+                            {formatNumber(summary?.total_tokens ?? 0)}
                         </div>
                     </div>
-                )}
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs mb-2">
+                            <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+                                <TrendingUp className="w-4 h-4" />
+                            </div>
+                            <span>{t('token_stats.input_tokens', 'Input Tokens')}</span>
+                        </div>
+                        <div className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                            {formatNumber(summary?.total_input_tokens ?? 0)}
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs mb-2">
+                            <div className="p-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                                <TrendingUp className="w-4 h-4 rotate-180" />
+                            </div>
+                            <span>{t('token_stats.output_tokens', 'Output Tokens')}</span>
+                        </div>
+                        <div className="text-2xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
+                            {formatNumber(summary?.total_output_tokens ?? 0)}
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                        <div className="flex items-center gap-2 text-cyan-600 dark:text-cyan-400 text-xs mb-2">
+                            <div className="p-1.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 dark:text-cyan-400">
+                                <Zap className="w-4 h-4" />
+                            </div>
+                            <span>{t('token_stats.cached_token', 'Cached Hits')}</span>
+                        </div>
+                        <div className="text-2xl font-bold tracking-tight text-cyan-600 dark:text-cyan-400">
+                            {formatNumber(summary?.total_cached_tokens ?? 0)}
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs mb-2">
+                            <div className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                                <Users className="w-4 h-4" />
+                            </div>
+                            <span>{t('token_stats.accounts_used', 'Active Accounts')}</span>
+                        </div>
+                        <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                            {summary?.unique_accounts ?? 0}
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-zinc-800 transition hover:shadow-md">
+                        <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-xs mb-2">
+                            <div className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+                                <Cpu className="w-4 h-4" />
+                            </div>
+                            <span>{t('token_stats.models_used', 'Active Models')}</span>
+                        </div>
+                        <div className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                            {modelData.length}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-zinc-800">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                        <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-2">
                             {viewMode === 'model' ? (
                                 <Cpu className="w-5 h-5 text-purple-500" />
                             ) : (
-                                <Users className="w-5 h-5 text-green-500" />
+                                <Users className="w-5 h-5 text-emerald-500" />
                             )}
-                            {viewMode === 'model'
-                                ? t('token_stats.model_trend', '分模型使用趋势')
-                                : t('token_stats.account_trend', '分账号使用趋势')
-                            }
+                            <span>
+                                {viewMode === 'model'
+                                    ? t('token_stats.model_trend', '分模型使用趋势')
+                                    : t('token_stats.account_trend', '分账号使用趋势')
+                                }
+                            </span>
                         </h2>
-                        <div className="flex bg-gray-100/80 dark:bg-gray-700/50 rounded-lg p-1">
+                        <div className="flex bg-slate-100 dark:bg-zinc-900 rounded-xl p-1 border border-slate-200/60 dark:border-zinc-800">
                             <button
                                 onClick={() => setViewMode('model')}
-                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${viewMode === 'model'
-                                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                    }`}
+                                className={cn(
+                                    'px-3 py-1 text-xs font-semibold rounded-lg transition-all',
+                                    viewMode === 'model'
+                                        ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-zinc-100 shadow-sm'
+                                        : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                                )}
                             >
                                 {t('token_stats.by_model', '按模型')}
                             </button>
                             <button
                                 onClick={() => setViewMode('account')}
-                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${viewMode === 'account'
-                                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                    }`}
+                                className={cn(
+                                    'px-3 py-1 text-xs font-semibold rounded-lg transition-all',
+                                    viewMode === 'account'
+                                        ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-zinc-100 shadow-sm'
+                                        : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                                )}
                             >
                                 {t('token_stats.by_account_view', '按账号')}
                             </button>
@@ -542,16 +567,24 @@ const TokenStats: React.FC = () => {
                                 </AreaChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="h-full flex items-center justify-center text-gray-400">
-                                {loading ? t('common.loading', '加载中...') : t('token_stats.no_data', '暂无数据')}
+                            <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400 dark:text-zinc-500 mb-2">
+                                    <BarChart3 className="w-5 h-5" />
+                                </div>
+                                <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-0.5">
+                                    {loading ? t('common.loading', 'Loading...') : t('token_stats.no_data', 'No Usage Data Yet')}
+                                </p>
+                                <p className="text-[11px] text-slate-400 dark:text-zinc-500">
+                                    Activity trends by model and account will display here as proxy calls are processed.
+                                </p>
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    <div className="lg:col-span-2 bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-zinc-800 flex flex-col">
+                        <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100 mb-4">
                             {t('token_stats.usage_trend', 'Token 使用趋势')}
                         </h2>
                         <div className="flex-1 min-h-[16rem]">
@@ -589,15 +622,23 @@ const TokenStats: React.FC = () => {
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="h-full flex items-center justify-center text-gray-400">
-                                    {loading ? t('common.loading', '加载中...') : t('token_stats.no_data', '暂无数据')}
+                                <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400 dark:text-zinc-500 mb-2">
+                                        <BarChart3 className="w-5 h-5" />
+                                    </div>
+                                    <p className="text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-0.5">
+                                        {loading ? t('common.loading', 'Loading...') : t('token_stats.no_data', 'No Token Activity')}
+                                    </p>
+                                    <p className="text-[11px] text-slate-400 dark:text-zinc-500">
+                                        Input and output token breakdowns will plot once requests are made.
+                                    </p>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    <div className="bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-zinc-800">
+                        <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100 mb-4">
                             {t('token_stats.by_account', '分账号统计')}
                         </h2>
                         <div className="h-48" ref={pieChartContainerRef}>
@@ -658,45 +699,45 @@ const TokenStats: React.FC = () => {
 
                 {
                     modelData.length > 0 && viewMode === 'model' && (
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                        <div className="bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-zinc-800">
+                            <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100 mb-4 flex items-center gap-2">
                                 <Cpu className="w-5 h-5 text-blue-500" />
                                 {t('token_stats.model_details', '分模型详细统计')}
                             </h2>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="border-b border-gray-200 dark:border-gray-700">
-                                            <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                        <tr className="border-b border-slate-200/80 dark:border-zinc-800">
+                                            <th className="text-left py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.model', '模型')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.requests', '请求数')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.input', '输入')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.output', '输出')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.cached_token', '缓存命中')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.total', '合计')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.percentage', '占比')}
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
                                         {modelData.map((model, index) => {
                                             const percentage = summary ? ((model.total_tokens / summary.total_tokens) * 100).toFixed(1) : '0';
                                             return (
                                                 <tr
                                                     key={model.model}
-                                                    className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                                                    className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors"
                                                 >
                                                     <td className="py-3 px-4">
                                                         <div className="flex items-center gap-2">
@@ -704,12 +745,12 @@ const TokenStats: React.FC = () => {
                                                                 className="w-3 h-3 rounded-full"
                                                                 style={{ backgroundColor: MODEL_COLORS[index % MODEL_COLORS.length] }}
                                                             />
-                                                            <span className="text-gray-800 dark:text-white font-medium">
+                                                            <span className="text-slate-900 dark:text-zinc-100 font-medium">
                                                                 {model.model}
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-300">
+                                                    <td className="py-3 px-4 text-right text-slate-600 dark:text-zinc-300">
                                                         {model.request_count.toLocaleString()}
                                                     </td>
                                                     <td className="py-3 px-4 text-right text-blue-600">
@@ -721,12 +762,12 @@ const TokenStats: React.FC = () => {
                                                     <td className="py-3 px-4 text-right text-sky-600">
                                                         {formatNumber(model.total_cached_tokens)}
                                                     </td>
-                                                    <td className="py-3 px-4 text-right font-semibold text-gray-800 dark:text-white">
+                                                    <td className="py-3 px-4 text-right font-semibold text-slate-900 dark:text-zinc-100">
                                                         {formatNumber(model.total_tokens)}
                                                     </td>
                                                     <td className="py-3 px-4 text-right">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                            <div className="w-16 bg-slate-200 dark:bg-zinc-800 rounded-full h-2">
                                                                 <div
                                                                     className="h-2 rounded-full"
                                                                     style={{
@@ -735,7 +776,7 @@ const TokenStats: React.FC = () => {
                                                                     }}
                                                                 />
                                                             </div>
-                                                            <span className="text-gray-600 dark:text-gray-300 w-12 text-right">
+                                                            <span className="text-slate-600 dark:text-zinc-400 w-12 text-right">
                                                                 {percentage}%
                                                             </span>
                                                         </div>
@@ -750,48 +791,46 @@ const TokenStats: React.FC = () => {
                     )
                 }
 
-
-
                 {
                     accountData.length > 0 && viewMode === 'account' && (
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                        <div className="bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-zinc-800">
+                            <h2 className="text-base font-bold text-slate-900 dark:text-zinc-100 mb-4">
                                 {t('token_stats.account_details', '账号详细统计')}
                             </h2>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="border-b border-gray-200 dark:border-gray-700">
-                                            <th className="text-left py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                        <tr className="border-b border-slate-200/80 dark:border-zinc-800">
+                                            <th className="text-left py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.account', '账号')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.requests', '请求数')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.input', '输入')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.output', '输出')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.cached_token', '缓存命中')}
                                             </th>
-                                            <th className="text-right py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
+                                            <th className="text-right py-3 px-4 font-semibold text-xs text-slate-500 dark:text-zinc-400">
                                                 {t('token_stats.total', '合计')}
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/60">
                                         {accountData.map((account) => (
                                             <tr
                                                 key={account.account_email}
-                                                className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                                                className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors"
                                             >
-                                                <td className="py-3 px-4 text-gray-800 dark:text-white">
+                                                <td className="py-3 px-4 text-slate-900 dark:text-zinc-100 font-medium">
                                                     {account.account_email}
                                                 </td>
-                                                <td className="py-3 px-4 text-right text-gray-600 dark:text-gray-300">
+                                                <td className="py-3 px-4 text-right text-slate-600 dark:text-zinc-300">
                                                     {account.request_count.toLocaleString()}
                                                 </td>
                                                 <td className="py-3 px-4 text-right text-blue-600">
@@ -803,7 +842,7 @@ const TokenStats: React.FC = () => {
                                                 <td className="py-3 px-4 text-right text-sky-600">
                                                     {formatNumber(account.total_cached_tokens)}
                                                 </td>
-                                                <td className="py-3 px-4 text-right font-semibold text-gray-800 dark:text-white">
+                                                <td className="py-3 px-4 text-right font-semibold text-slate-900 dark:text-zinc-100">
                                                     {formatNumber(account.total_tokens)}
                                                 </td>
                                             </tr>

@@ -14,6 +14,7 @@ import { useDebugConsole } from '../stores/useDebugConsole';
 import { useTranslation } from 'react-i18next';
 import { isTauri } from '../utils/env';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { cn } from '../utils/cn';
 
 import DebugConsole from '../components/debug/DebugConsole';
 import ProxyPoolSettings from '../components/settings/ProxyPoolSettings';
@@ -396,78 +397,60 @@ function Settings() {
 
     return (
         <div className="h-full w-full overflow-y-auto">
-            <div className="p-5 space-y-4 max-w-7xl mx-auto">
-                {/* 顶部工具栏：Tab 导航和保存按钮 */}
-                <div className="flex justify-between items-center">
-                    {/* Tab 导航 - 采用顶部导航栏样式：外层灰色容器 */}
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-base-200 rounded-full p-1 w-fit">
-                        <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'general'
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                }`}
-                            onClick={() => setActiveTab('general')}
-                        >
-                            {t('settings.tabs.general')}
-                        </button>
-                        <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'account'
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                }`}
-                            onClick={() => setActiveTab('account')}
-                        >
-                            {t('settings.tabs.account')}
-                        </button>
-                        <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'proxy'
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                }`}
-                            onClick={() => setActiveTab('proxy')}
-                        >
-                            {t('settings.tabs.proxy')}
-                        </button>
-                        <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'advanced'
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                }`}
-                            onClick={() => setActiveTab('advanced')}
-                        >
-                            {t('settings.tabs.advanced')}
-                        </button>
-                        <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'debug'
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                }`}
-                            onClick={() => setActiveTab('debug')}
-                        >
-                            {t('settings.tabs.debug')}
-                        </button>
-                        <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${activeTab === 'about'
-                                ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                                }`}
-                            onClick={() => setActiveTab('about')}
-                        >
-                            {t('settings.tabs.about')}
-                        </button>
+            <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+                {/* Page Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 flex items-center gap-2.5">
+                            <SettingsIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <span>{t('settings.title', 'Settings & Preferences')}</span>
+                        </h1>
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+                            Configure application preferences, account rotation policies, and network gateways.
+                        </p>
                     </div>
 
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-sm"
-                        onClick={handleSave}
-                    >
-                        <Save className="w-4 h-4" />
-                        {t('settings.save')}
-                    </button>
+                    <div className="flex items-center gap-2.5">
+                        <button
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-2 shadow-sm shadow-blue-500/20"
+                            onClick={handleSave}
+                        >
+                            <Save className="w-4 h-4" />
+                            <span>{t('settings.save', 'Save Changes')}</span>
+                        </button>
+                    </div>
                 </div>
 
-                {/* 设置表单 */}
-                <div className="bg-white dark:bg-base-100 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-base-200">
+                {/* Tab Navigation */}
+                <div className="bg-white dark:bg-[#121214] rounded-2xl border border-slate-200/80 dark:border-zinc-800 p-2 shadow-sm flex items-center gap-1.5 overflow-x-auto">
+                    {[
+                        { id: 'general', label: t('settings.tabs.general') },
+                        { id: 'account', label: t('settings.tabs.account') },
+                        { id: 'proxy', label: t('settings.tabs.proxy') },
+                        { id: 'advanced', label: t('settings.tabs.advanced') },
+                        { id: 'debug', label: t('settings.tabs.debug') },
+                        { id: 'about', label: t('settings.tabs.about') },
+                    ].map((tab) => {
+                        const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                className={cn(
+                                    'px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap',
+                                    isActive
+                                        ? 'bg-blue-600 text-white shadow-sm'
+                                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                                )}
+                                onClick={() => setActiveTab(tab.id as any)}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Settings Card Content */}
+                <div className="bg-white dark:bg-[#121214] rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 dark:border-zinc-800">
                     {/* 通用设置 */}
                     {activeTab === 'general' && (
                         <div className="space-y-6">

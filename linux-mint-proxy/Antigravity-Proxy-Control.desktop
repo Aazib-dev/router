@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Antigravity Proxy Control
+GenericName=AI Proxy Gateway
+Comment=Authenticate Google Account and control the background AI Proxy for Harness Agent
+Exec=antigravity-control
+Icon=network-vpn
+Terminal=false
+Categories=Development;Network;Utility;
+StartupNotify=true
+Keywords=AI;Proxy;Antigravity;Gemini;Claude;Harness;
