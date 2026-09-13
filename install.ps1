@@ -1,16 +1,19 @@
-﻿# Antigravity Tools Install Script for Windows
-# Usage: irm https://raw.githubusercontent.com/Aazib-Ai/router/main/install.ps1 | iex
+# Antigravity Tools Install Script (Windows PowerShell)
+# Usage: irm https://raw.githubusercontent.com/Aazib-dev/router/main/install.ps1 | iex
 #
-# Parameters (set before running):
-#   $Version = "4.2.2"  # Install specific version
-#   $DryRun = $true      # Preview commands without executing
+# Parameters:
+#   $Version  - Install specific version (e.g., "4.1.20"), default: latest
+#   $DryRun   - Preview commands without executing
 
-if (-not $Version) { $Version = "" }
-if (-not $DryRun) { $DryRun = $false }
+[CmdletBinding()]
+param(
+    [string]$Version = "",
+    [switch]$DryRun = $false
+)
 
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Stop"
 
-$Repo = "Aazib-Ai/router"
+$Repo = "Aazib-dev/router"
 $AppName = "Router"
 $GithubApi = "https://api.github.com/repos/$Repo/releases"
 $script:ReleaseVersion = ""

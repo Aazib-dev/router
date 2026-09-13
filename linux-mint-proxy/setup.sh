@@ -18,7 +18,7 @@ warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error()   { echo -e "${RED}[ERROR]${NC} $1" >&2; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="Aazib-Ai/router"
+REPO="Aazib-dev/router"
 APP_NAME="Antigravity Tools"
 PORT=8045
 SERVICE_NAME="antigravity-router.service"
